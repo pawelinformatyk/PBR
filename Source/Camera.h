@@ -14,10 +14,14 @@ public:
 	FCamera(glm::vec3 CameraPos, glm::vec2 MousePosition);
 
 	void ProcessMouseMove(float x, float y);
-	void ProcessKeyboardClick(int button, int state, float x, float y);
+	void ProcessMouseClick(int button, int state, float x, float y);
 	void ProcessKeyboardClick(GLubyte key, int x, int y);
 
+	// Calculate view from new looking direction (mouse position).
+	void CalculateView(float x, float y);
+
 	glm::mat4& GetView();
+	glm::vec3& GetPosition();
 
 private:
 
@@ -27,7 +31,7 @@ private:
 	glm::vec3 DirectionFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 DirectionUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	const float Speed = 0.05f;
+	const float Speed = 1.f;
 
 	bool bRightButtonPressed = false;
 	float MouseX = 0.f;

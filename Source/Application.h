@@ -2,11 +2,13 @@
 
 #include "glew.h"
 #include "freeglut.h"
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp" 
 
 #include "Shader.h"
 #include "Camera.h"
+#include "Primitives.h"
 
 
 class Application
@@ -32,17 +34,18 @@ public:
 private:
 
 	void Init();
-	void BuildDrawSphere();
 
-	const unsigned int SphereSegmentsX = 64;
-	const unsigned int SphereSegmentsY = 64;
+	FShaderBase ShaderBase;
+	FShaderTexture ShaderTexture;
+	FShaderTexture ShaderPhongTexture;
+	FShader* Shader=nullptr;
 
-	FShader* Shader = nullptr;
+	FCamera Camera;
 
 	int ScreenWidth = 1600;
 	int ScreenHeight = 920;
 
-	FCamera* Camera = nullptr;
+	FSphere Sphere;
 
 protected:
 	static Application* Instance;

@@ -1,12 +1,19 @@
 ﻿#include "Application.h"
 
 #include <iostream>
-#include <vector>
+#include <string>
+#include "stb_image.h"
 
+int Size = 32;
 
 Application* Application::Instance = 0;
 
 Application::Application()
+	:Camera(glm::vec3(0.0f, 0.0f, -20.f), glm::vec2(ScreenWidth / 2, ScreenHeight / 2)),
+	Sphere(Size, Size),
+	ShaderBase("Source/pbr_vs.glsl", "Source/pbr_fs.glsl"),
+	ShaderTexture("Source/pbr_tex_vs.glsl", "Source/pbr_tex_fs.glsl"),
+	ShaderPhongTexture("Source/_tex_vs.glsl", "Source/_tex_fs.glsl")
 {
 	Instance = this;
 }
@@ -36,40 +43,83 @@ void Application::Run(int argc, char** argv)
 
 void Application::Init()
 {
-	Camera = new FCamera( glm::vec3(0.0f, 0.0f, -3.5f), glm::vec2(ScreenWidth / 2, ScreenHeight / 2));
-	if (!Camera)
+	// Setup lights.
+	glm::vec3 lightPositions[4] =
 	{
-		exit(0);
+		glm::vec3(-10.0f,  10.0f, -10.0f),
+		glm::vec3(10.0f,  10.0f, -10.0f),
+		glm::vec3(-10.0f, -10.0f, -10.0f),
+		glm::vec3(10.0f, -10.0f, -10.0f),
+	};
+
+	Sphere.Init();
+
+	ShaderBase.Init();
+	ShaderBase.Use();
+	ShaderBase.SetMat4("Projection", glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.1f, 100.0f));
+	
+	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+	{
+		ShaderBase.SetVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
 	}
 
-	Shader = new FShader("Source/pbr_vs.glsl", "Source/pbr_fs.glsl");
-	if (!Shader)
+	ShaderTexture.Init();
+	ShaderTexture.Use();
+	ShaderTexture.SetMat4("Projection", glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.1f, 100.0f));
+
+	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
 	{
-		exit(0);
+		ShaderTexture.SetVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
 	}
 
-	Shader->Use();
+	ShaderPhongTexture.Init();
+	ShaderPhongTexture.Use();
+	ShaderPhongTexture.SetMat4("Projection", glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.1f, 100.0f));
 
-	const glm::mat4 Projection = glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.1f, 100.0f);
-	Shader->SetMat4("Projection", Projection);
-	Shader->SetMat4("View", Camera->GetView());
+	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+	{
+		ShaderPhongTexture.SetVec3("lightPositions[" + std::to_string(i) + "]", lightPositions[i]);
+	}
+
+	Shader = &ShaderTexture;
 }
 
 void Application::Draw()
 {
-	glClearColor(0.4f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-	// Shader settings. 
 	Shader->Use();
 
-	Shader->SetMat4("View", Camera->GetView());
+	Shader->SetMat4("View", Camera.GetView());
+	Shader->SetVec3("CameraPos", Camera.GetPosition());
 
-	const glm::mat4 Model = glm::mat4(1.0f);
-	Shader->SetMat4("Model", Model);
 
-	BuildDrawSphere();
+	const int RowsNr = 7;
+	const int ColumnsNr = 7;
+	const float Spacing = 2.5;
+
+	glm::mat4 Model = glm::mat4(1.0f);
+
+	for (int Row = 0; Row < RowsNr; ++Row)
+	{
+		Shader->SetFloat("Metallic", (float)Row / (float)RowsNr);
+		for (int Col = 0; Col < ColumnsNr; ++Col)
+		{
+			// we clamp the roughness to 0.05 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
+			// on direct lighting.
+			Shader->SetFloat("Roughness", glm::clamp((float)Col / (float)ColumnsNr, 0.05f, 1.0f));
+
+			Model = glm::mat4(1.0f);
+			Model = glm::translate(Model, glm::vec3(
+				(Col - (ColumnsNr / 2)) * Spacing,
+				(Row - (RowsNr / 2)) * Spacing,
+				0.0f
+			));
+			Shader->SetMat4("Model", Model);
+			Sphere.Draw();
+		}
+	}
 
 
 	glFlush();
@@ -83,114 +133,31 @@ void Application::Idle()
 
 void Application::MouseClick(int button, int state, float x, float y)
 {
-	Camera->ProcessKeyboardClick(button, state, x, y);
+	Camera.ProcessMouseClick(button, state, x, y);
 }
 
 void Application::MouseMove(float x, float y)
 {
-	Camera->ProcessMouseMove(x, y);
+	Camera.ProcessMouseMove(x, y);
 }
 
 void Application::KeyboardClick(GLubyte key, int x, int y)
 {
-	Camera->ProcessKeyboardClick(key, x, y);
+	Camera.ProcessKeyboardClick(key, x, y);
+
+	switch (key)
+	{
+	case '1':
+		Shader = &ShaderBase;
+		break;
+	case '2':
+		Shader = &ShaderTexture;
+		break;
+	case '3':
+		Shader = &ShaderPhongTexture;
+		break;
+	}
 }
-
-void Application::BuildDrawSphere()
-{
-	unsigned int sphereVAO = 0;
-	unsigned int indexCount = 0;
-
-	glGenVertexArrays(1, &sphereVAO);
-
-	unsigned int vbo, ebo;
-	glGenBuffers(1, &vbo);
-	glGenBuffers(1, &ebo);
-
-	std::vector<glm::vec3> positions;
-	std::vector<glm::vec2> uv;
-	std::vector<glm::vec3> normals;
-	std::vector<unsigned int> indices;
-
-	const float PI = 3.14159265359f;
-	for (unsigned int x = 0; x <= SphereSegmentsX; ++x)
-	{
-		for (unsigned int y = 0; y <= SphereSegmentsY; ++y)
-		{
-			float xSegment = (float)x / (float)SphereSegmentsX;
-			float ySegment = (float)y / (float)SphereSegmentsY;
-			float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-			float yPos = std::cos(ySegment * PI);
-			float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-
-			positions.push_back(glm::vec3(xPos, yPos, zPos));
-			uv.push_back(glm::vec2(xSegment, ySegment));
-			normals.push_back(glm::vec3(xPos, yPos, zPos));
-		}
-	}
-
-	bool oddRow = false;
-	for (unsigned int y = 0; y < SphereSegmentsY; ++y)
-	{
-		if (!oddRow) // even rows: y == 0, y == 2; and so on
-		{
-			for (unsigned int x = 0; x <= SphereSegmentsX; ++x)
-			{
-				indices.push_back(y * (SphereSegmentsX + 1) + x);
-				indices.push_back((y + 1) * (SphereSegmentsX + 1) + x);
-			}
-		}
-		else
-		{
-			for (int x = SphereSegmentsX; x >= 0; --x)
-			{
-				indices.push_back((y + 1) * (SphereSegmentsX + 1) + x);
-				indices.push_back(y * (SphereSegmentsX + 1) + x);
-			}
-		}
-		oddRow = !oddRow;
-	}
-	indexCount = indices.size();
-
-	std::vector<float> data;
-	for (unsigned int i = 0; i < positions.size(); ++i)
-	{
-		data.push_back(positions[i].x);
-		data.push_back(positions[i].y);
-		data.push_back(positions[i].z);
-		if (normals.size() > 0)
-		{
-			data.push_back(normals[i].x);
-			data.push_back(normals[i].y);
-			data.push_back(normals[i].z);
-		}
-		if (uv.size() > 0)
-		{
-			data.push_back(uv[i].x);
-			data.push_back(uv[i].y);
-		}
-	}
-
-	glBindVertexArray(sphereVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-	unsigned int stride = (3 + 2 + 3) * sizeof(float);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
-
-	glBindVertexArray(sphereVAO);
-	glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
-}
-
 
 
 // STATIC FUNCTION CALLBACKS 

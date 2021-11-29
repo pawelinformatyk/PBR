@@ -155,15 +155,25 @@
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
+    <ClCompile Include="Source\Primitives.cpp" />
+    <ClCompile Include="Source\stb_image.cpp" />
+    <ClCompile Include="Source\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application.h" />
     <ClInclude Include="Source\Camera.h" />
     <ClInclude Include="Source\Shader.h" />
+    <ClInclude Include="Source\Primitives.h" />
+    <ClInclude Include="Source\stb_image.h" />
+    <ClInclude Include="Source\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\pbr_fs.glsl" />
+    <None Include="Source\pbr_tex_fs.glsl" />
+    <None Include="Source\pbr_tex_vs.glsl" />
     <None Include="Source\pbr_vs.glsl" />
+    <None Include="Source\_tex_fs.glsl" />
+    <None Include="Source\_tex_vs.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

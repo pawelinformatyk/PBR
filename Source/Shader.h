@@ -11,8 +11,12 @@ class FShader
 {
 public:
 
-	FShader( const char* vertex_path, const char* fragment_path,const char* geometry_path=NULL );
+	FShader( const char* vertex_path, const char* fragment_path );
 	
+    virtual void Init();
+    const char* vertex_path;
+    const char* fragment_path;
+
     unsigned int GetID()const{ return ID; };
     void Use()
     {
@@ -85,4 +89,22 @@ private:
 	*/
 	void ShaderAttachFromFile( GLuint program, GLenum type, const char* file_path );
 	int LoadShaders( const char* vertex_path, const char* fragment_path, const char* geometry_path = NULL );
+};
+
+class FShaderTexture : public FShader
+{
+public:
+
+    FShaderTexture(const char* vertex_path, const char* fragment_path) :FShader(vertex_path, fragment_path) {}
+
+    virtual void Init()override;
+};
+
+class FShaderBase : public FShader
+{
+public:
+
+    FShaderBase(const char* vertex_path, const char* fragment_path) :FShader(vertex_path, fragment_path) {}
+
+	virtual void Init()override;
 };

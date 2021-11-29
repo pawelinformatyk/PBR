@@ -7,6 +7,8 @@ FCamera::FCamera(glm::vec3 CameraPos, glm::vec2 MousePosition)
 	Position = CameraPos;
 	MouseX = MousePosition.x;
 	MouseY = MousePosition.y;
+
+	CalculateView(0, 0);
 }
 
 FCamera::FCamera()
@@ -21,6 +23,11 @@ void FCamera::ProcessMouseMove(float x, float y)
 		return;
 	}
 
+	CalculateView(x, y);
+}
+
+void FCamera::CalculateView(float x, float y)
+{
 	float Xoffset = x - MouseX;
 	float Yoffset = MouseY - y;
 	MouseX = x;
@@ -45,7 +52,7 @@ void FCamera::ProcessMouseMove(float x, float y)
 		DirectionUp);
 }
 
-void FCamera::ProcessKeyboardClick(int button, int state, float x, float y)
+void FCamera::ProcessMouseClick(int button, int state, float x, float y)
 {
 	if (button != GLUT_RIGHT_BUTTON)
 	{
@@ -97,5 +104,10 @@ void FCamera::ProcessKeyboardClick(GLubyte key, int x, int y)
 glm::mat4& FCamera::GetView()
 {
 	return View;
+}
+
+glm::vec3& FCamera::GetPosition()
+{
+	return Position;
 }
 

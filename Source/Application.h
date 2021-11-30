@@ -1,14 +1,10 @@
 #pragma once
 
-#include "glew.h"
-#include "freeglut.h"
+struct GLFWwindow;
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp" 
-
-#include "Shader.h"
-#include "Camera.h"
-#include "Primitives.h"
+#include "Primitives/Primitives.h"
+#include "Shaders/Shader.h"
+#include "Camera/Camera.h"
 
 
 class Application
@@ -19,34 +15,48 @@ public:
 
 	void Run(int argc, char** argv);
 
-	void Draw();
-	void Idle();
-	void MouseClick(int button, int state, float x, float y);
-	void MouseMove(float x, float y);
-	void KeyboardClick(GLubyte key, int x, int y);
+	void Draw(GLFWwindow* Window);
 
-	static void _Draw();
-	static void _Idle();
-	static void _MouseClick(int button, int state, int x, int y);
-	static void _MouseMove(int x, int y);
-	static void _KeyboardClick(GLubyte key, int x, int y);
+	void DrawScene(GLFWwindow* Window);
+	void DrawGUI();
+
+	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	void FramebufferSizeCallback(GLFWwindow* Window, int Width, int Height);
 
 private:
 
+	void ProcessCameraInput(GLFWwindow* Window);
+
 	void Init();
 
-	FShaderBase ShaderBase;
-	FShaderTexture ShaderTexture;
+	FShaderBase ShaderPBRBase;
+	FShaderTexture ShaderPBRTexture;
 	FShaderTexture ShaderPhongTexture;
-	FShader* Shader=nullptr;
+	FShader* Shader = nullptr;
 
 	FCamera Camera;
 
 	int ScreenWidth = 1600;
 	int ScreenHeight = 920;
 
-	FSphere Sphere;
+	FSphere Sphere = FSphere(32);
 
-protected:
+private:
+
+	float IntervalBetweenLights = 20.f;
+	int LightsColumns = 2;
+	int LightsRows = 2;
+
+	float IntervalBetweenModels = 5.f;
+	int ModelsColumns = 5;
+	int ModelsRows = 5;
+
+	int SphereSegments = 32;
+
+public:
+
+	static void _FramebufferSizeCallback(GLFWwindow* Window, int Width, int Height);
+	static void _KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 	static Application* Instance;
 };

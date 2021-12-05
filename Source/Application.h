@@ -22,6 +22,7 @@ public:
 
 	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	void FramebufferSizeCallback(GLFWwindow* Window, int Width, int Height);
+	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 private:
 
@@ -29,10 +30,13 @@ private:
 
 	void Init();
 
-	FShaderBase ShaderPBRBase;
-	FShaderTexture ShaderPBRTexture;
-	FShaderTexture ShaderPhongTexture;
+	FShaderBase ShaderPBR;
+	FShaderBase ShaderBlinnPhong;
+	FShaderTexture ShaderTexturePBR;
+	FShaderTexture ShaderTextureBlinnPhong;
 	FShader* Shader = nullptr;
+
+	int SC = 0;
 
 	FCamera Camera;
 
@@ -57,6 +61,7 @@ public:
 
 	static void _FramebufferSizeCallback(GLFWwindow* Window, int Width, int Height);
 	static void _KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static void _ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 	static Application* Instance;
 };

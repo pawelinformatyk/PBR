@@ -109,11 +109,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Source\Shaders\_tex_fs.glsl" />
-    <None Include="Source\Shaders\_tex_vs.glsl" />
     <None Include="Source\Shaders\pbr_fs.glsl" />
     <None Include="Source\Shaders\pbr_tex_fs.glsl" />
-    <None Include="Source\Shaders\pbr_tex_vs.glsl" />
-    <None Include="Source\Shaders\pbr_vs.glsl" />
+    <None Include="Source\Shaders\vertex_shader.glsl" />
+    <None Include="Source\Shaders\blinn_phong_fs.glsl" />
+    <None Include="Source\Shaders\blinn_phong_tex_fs.glsl" />
   </ItemGroup>
 </Project>

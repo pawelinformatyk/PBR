@@ -13,7 +13,10 @@ uniform sampler2D RoughnessMap;
 uniform sampler2D AOMap;
 
 // lights
-uniform vec3 LightPositions[4];
+#define MAX_LIGHTS 256
+
+uniform int LightsNum = 4;
+uniform vec3 LightPositions[MAX_LIGHTS];
 
 uniform vec3 CameraPos;
 
@@ -37,32 +40,40 @@ vec3 getNormalFromMap()
 
 void main()
 {		
-    vec3 color = texture(AlbedoMap, TexCoords).rgb;
-    
+    vec3 Diffuse = texture(AlbedoMap, TexCoords).rgb;
+
     vec3 N = getNormalFromMap();
 
-    vec3 ambient = 0.05 * color;
+    vec3 ambient = vec3(0.);
     vec3 diffuse = vec3(0.);
     vec3 specular = vec3(0.);
 
     vec3 viewDir = normalize(CameraPos - WorldPos);
 
-    for(int i = 0; i < 4; ++i) 
+    for(int i = 0; i < min(MAX_LIGHTS,LightsNum); ++i) 
     {
         vec3 lightDir = normalize(LightPositions[i] - WorldPos);
         
         float diff = max(dot(lightDir, N), 0.0);
 
         vec3 halfwayDir = normalize(lightDir + viewDir);  
-        float spec = pow(max(dot(N, halfwayDir), 0.0), 32.0);
+        float spec = pow(max(dot(N, halfwayDir), 0.0), 16.);
 
         float distance = length(LightPositions[i] - WorldPos);  
-        float attenuation = 4.0 / ( distance);    
+        float attenuation = 300.0 / ( distance * distance);    
     
+        ambient  += vec3(0.03) * Diffuse * attenuation;
+        diffuse  += vec3(0.8) * diff      * Diffuse * attenuation;
         specular += vec3(1) * spec * attenuation; 
-        diffuse += diff * color * attenuation;
-    }   
+    }
     
-    // specular
-    FragColor = vec4( ambient + diffuse + specular, 1.0);
+    vec3 Color = ambient+diffuse+specular;
+    
+    // HDR 
+    Color = Color / (Color + vec3(1.0));
+
+    // Gamma
+    Color = pow(Color, vec3(1.0/2.2)); 
+
+    FragColor = vec4(Color, 1.0);
 }

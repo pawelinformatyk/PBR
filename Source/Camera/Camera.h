@@ -18,6 +18,8 @@ public:
 	// Calculate view from new looking direction (mouse position).
 	void CalculateView(double x, double y);
 
+	void AddSpeed(float Val);
+
 	glm::mat4& GetView();
 	glm::vec3& GetPosition();
 
@@ -29,7 +31,7 @@ private:
 	glm::vec3 DirectionFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 DirectionUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	const float Speed = .25f;
+	float Speed = .25f;
 
 	bool bRightButtonPressed = false;
 	double MouseX = 0.f;

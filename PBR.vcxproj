@@ -189,12 +189,11 @@
     <ClInclude Include="Source\Texture\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Source\Shaders\blinn_phong_fs.glsl" />
+    <None Include="Source\Shaders\blinn_phong_tex_fs.glsl" />
     <None Include="Source\Shaders\pbr_fs.glsl" />
     <None Include="Source\Shaders\pbr_tex_fs.glsl" />
-    <None Include="Source\Shaders\pbr_tex_vs.glsl" />
-    <None Include="Source\Shaders\pbr_vs.glsl" />
-    <None Include="Source\Shaders\_tex_fs.glsl" />
-    <None Include="Source\Shaders\_tex_vs.glsl" />
+    <None Include="Source\Shaders\vertex_shader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

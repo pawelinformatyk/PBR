@@ -62,8 +62,8 @@ void FSphere::GetData(std::vector<float>& Data,std::vector<unsigned int>& Indice
 		}
 		bOddRow = !bOddRow;
 	}
-	std::cout << Positions.size() << std::endl;
-	std::cout << Positions.size() * 49 << std::endl;
+	
+	VerticesNum =  Positions.size();
 
 	for (unsigned int i = 0; i < Positions.size(); ++i)
 	{
@@ -138,4 +138,9 @@ void FPrimitiveObject::Draw()
 	glBindTexture(GL_TEXTURE_2D, Textures[3].GetID());
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, Textures[4].GetID());
+}
+
+size_t FPrimitiveObject::GetSize()
+{
+	return VerticesNum;
 }

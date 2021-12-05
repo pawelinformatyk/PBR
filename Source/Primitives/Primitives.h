@@ -19,6 +19,11 @@ public:
 	void Draw();
 
 	virtual void GetData(std::vector<float>& Data, std::vector<unsigned int>& Indices) = 0;
+	size_t GetSize();
+
+protected:
+
+	size_t VerticesNum = 0;
 
 private:
 

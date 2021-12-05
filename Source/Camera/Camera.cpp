@@ -101,3 +101,9 @@ glm::vec3& FCamera::GetPosition()
 	return Position;
 }
 
+void FCamera::AddSpeed(float Val)
+{
+	Speed += Val;
+	Speed = glm::clamp(Speed, 0.01f, 1.f);
+}
+

@@ -104,6 +104,6 @@ glm::vec3& FCamera::GetPosition()
 void FCamera::AddSpeed(float Val)
 {
 	Speed += Val;
-	Speed = glm::clamp(Speed, 0.01f, 1.f);
+	Speed = glm::clamp(Speed, 0.00001f, 1.f);
 }
 

@@ -28,10 +28,13 @@
 
 #include "Shader.h"
 
-FShader::FShader( const char* vertex_path, const char* fragment_path)
+
+FShader::FShader(const std::string& inName, const char* vertex_path, const char* fragment_path)
+	:Name(inName),
+	vertex_path(vertex_path),
+	fragment_path(fragment_path)
 {
-	this->vertex_path = vertex_path;
-	this->fragment_path = fragment_path;
+
 }
 
 void FShader::Init()
@@ -175,25 +178,4 @@ int FShader::LoadShaders( const char* vertex_path, const char* fragment_path, co
 		g_program = 0;
 	}
 	return g_program;
-}
-
-void FShaderTexture::Init()
-{
-	FShader::Init();
-
-	SetInt("AlbedoMap", 0);
-	SetInt("NormalMap", 1);
-	SetInt("MetallicMap", 2);
-	SetInt("RoughnessMap", 3);
-	SetInt("AOMap", 4);
-}
-
-void FShaderBase::Init()
-{
-	FShader::Init();
-
-	SetVec3("Albedo", 0.5f, 0.0f, 0.0f);
-	SetFloat("AO", 1.0f);
-	SetFloat("Metallic", 1.0f);
-	SetFloat("Roughness", 1.0f);
 }

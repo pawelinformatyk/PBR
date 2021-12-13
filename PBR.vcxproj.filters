@@ -111,8 +111,11 @@
   <ItemGroup>
     <None Include="Source\Shaders\pbr_fs.glsl" />
     <None Include="Source\Shaders\pbr_tex_fs.glsl" />
-    <None Include="Source\Shaders\vertex_shader.glsl" />
     <None Include="Source\Shaders\blinn_phong_fs.glsl" />
     <None Include="Source\Shaders\blinn_phong_tex_fs.glsl" />
+    <None Include="Source\Shaders\_vs.glsl" />
+    <None Include="Source\Shaders\gouraud_fs.glsl" />
+    <None Include="Source\Shaders\gouraud_vs.glsl" />
+    <None Include="Source\Shaders\gouraud_tex_vs.glsl" />
   </ItemGroup>
 </Project>

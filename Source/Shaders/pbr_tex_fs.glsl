@@ -9,9 +9,8 @@ uniform sampler2D AlbedoMap;
 uniform sampler2D NormalMap;
 uniform sampler2D MetallicMap;
 uniform sampler2D RoughnessMap;
-uniform sampler2D AOMap;
 
-#define MAX_LIGHTS 256
+#define MAX_LIGHTS 992
 
 uniform int LightsNum;
 uniform vec3 LightPositions[MAX_LIGHTS];
@@ -82,7 +81,6 @@ void main()
     vec3 Albedo     = pow(texture(AlbedoMap, TexCoords).rgb, vec3(2.2));
     float Metallic  = texture(MetallicMap, TexCoords).r;
     float Roughness = texture(RoughnessMap, TexCoords).r;
-    float AO        = texture(AOMap, TexCoords).r;
 
     vec3 N = GetNormalFromMap();
     vec3 V = normalize(CameraPos - WorldPos);
@@ -130,7 +128,7 @@ void main()
         Lo += (kD * Albedo / PI + Specular) * Radiance * NdotL;
     }   
     
-    vec3 Ambient = vec3(0.03) * Albedo * AO;
+    vec3 Ambient = vec3(0.03) * Albedo;
 
     vec3 Color = Ambient + Lo;
 

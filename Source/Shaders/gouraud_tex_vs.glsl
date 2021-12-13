@@ -1,9 +1,10 @@
 #version 330 core
 
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
+
 out vec4 FragColor;
-in vec2 TexCoords;
-in vec3 WorldPos;
-in vec3 Normal;
 
 uniform sampler2D AlbedoMap;
 uniform sampler2D NormalMap;
@@ -17,33 +18,23 @@ uniform vec3 LightPositions[MAX_LIGHTS];
 
 uniform vec3 CameraPos;
 
+uniform mat4 Projection;
+uniform mat4 View;
+uniform mat4 Model;
 
-vec3 GetNormalFromMap()
-{
-    vec3 TangentNormal = texture(NormalMap, TexCoords).xyz * 2.0 - 1.0;
-
-    vec3 Q1  = dFdx(WorldPos);
-    vec3 Q2  = dFdy(WorldPos);
-    vec2 St1 = dFdx(TexCoords);
-    vec2 St2 = dFdy(TexCoords);
-
-    vec3 N   = normalize(Normal);
-    vec3 T  = normalize(Q1*St2.t - Q2*St1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(TBN * TangentNormal);
-}
 
 void main()
-{		
-    vec3 Diffuse = texture(AlbedoMap, TexCoords).rgb;
-    // Make this shader look like PBR.
-    float Specular = texture(MetallicMap, TexCoords).r;
-    float Roughness = texture(RoughnessMap, TexCoords).r;
+{
+    gl_Position =  Projection * View * Model * vec4(aPos, 1.0);
+
+    vec3 WorldPos = vec3(Model * vec4(aPos,1.0));
+
+    vec3 Diffuse = texture(AlbedoMap, aTexCoords).rgb;
+    float Specular = texture(MetallicMap, aTexCoords).r;
+    float Roughness = texture(RoughnessMap, aTexCoords).r;
     float Shininess = 20. / (Roughness * Roughness) - 2.;
 
-    vec3 N = GetNormalFromMap();
+    vec3 N = normalize(aNormal);
 
     vec3 DiffusePart = vec3(0.);
     vec3 SpecularPart = vec3(0.);
@@ -56,8 +47,8 @@ void main()
         
         float Diff = max(dot(LightDir, N), 0.0);
 
-        vec3 HalfwayDir = normalize(LightDir + ViewDir);  
-        float Spec = pow(max(dot(N, HalfwayDir), 0.0), Shininess);
+    	vec3 ReflectDir = reflect(-LightDir, N);
+        float Spec = pow(max(dot(ViewDir,ReflectDir), 0.0), Shininess);
 
         float Distance = length(LightPositions[i] - WorldPos);  
         float Attenuation = 85. / ( Distance * Distance);    
@@ -69,6 +60,6 @@ void main()
     vec3 Ambient = vec3(0.03) * Diffuse;
 
     vec3 Color = Ambient + DiffusePart + SpecularPart;
-    
+
     FragColor = vec4(Color, 1.0);
 }

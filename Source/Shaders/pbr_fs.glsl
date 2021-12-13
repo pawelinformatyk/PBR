@@ -8,9 +8,8 @@ in vec3 Normal;
 uniform vec3 Albedo;
 uniform float Metallic;
 uniform float Roughness;
-uniform float AO;
 
-#define MAX_LIGHTS 256
+#define MAX_LIGHTS 992
 
 uniform int LightsNum;
 uniform vec3 LightPositions[MAX_LIGHTS];
@@ -107,7 +106,7 @@ void main()
         Lo += (kD * Albedo / PI + Specular) * Radiance * NdotL;
     }   
     
-    vec3 Ambient = vec3(0.03) * Albedo * AO;
+    vec3 Ambient = vec3(0.03) * Albedo;
 
     vec3 Color = Ambient + Lo;
 

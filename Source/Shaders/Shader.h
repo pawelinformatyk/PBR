@@ -11,11 +11,13 @@ class FShader
 {
 public:
 
-	FShader( const char* vertex_path, const char* fragment_path );
+	FShader(const std::string& inName, const char* vertex_path, const char* fragment_path );
 	
     virtual void Init();
     const char* vertex_path;
     const char* fragment_path;
+
+    const std::string& GetName() { return Name; };
 
     unsigned int GetID()const{ return ID; };
     void Use()
@@ -72,6 +74,9 @@ public:
     }
 
 private:
+
+	std::string Name;
+
     unsigned int ID;
 	/*
 	* Returns a string containing the text in
@@ -89,22 +94,4 @@ private:
 	*/
 	void ShaderAttachFromFile( GLuint program, GLenum type, const char* file_path );
 	int LoadShaders( const char* vertex_path, const char* fragment_path, const char* geometry_path = NULL );
-};
-
-class FShaderTexture : public FShader
-{
-public:
-
-    FShaderTexture(const char* vertex_path, const char* fragment_path) :FShader(vertex_path, fragment_path) {}
-
-    virtual void Init()override;
-};
-
-class FShaderBase : public FShader
-{
-public:
-
-    FShaderBase(const char* vertex_path, const char* fragment_path) :FShader(vertex_path, fragment_path) {}
-
-	virtual void Init()override;
 };

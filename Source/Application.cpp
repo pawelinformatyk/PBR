@@ -7,9 +7,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Primitives/Primitives.h"
-#include "Shaders/Shader.h"
-
 #include <iostream>
 #include <string>
 
@@ -27,16 +24,18 @@ Application::Application()
 	ShaderTexturePBR("PBR with texture", "Source/Shaders/_vs.glsl", "Source/Shaders/pbr_tex_fs.glsl")
 {
 	Instance = this;
+
+	Init();
 }
 
-void Application::Run(int argc, char** argv)
+void Application::Init()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* Window = glfwCreateWindow(ScreenWidth, ScreenHeight, "PBR", NULL, NULL);
+	Window = glfwCreateWindow(ScreenWidth, ScreenHeight, "PBR", NULL, NULL);
 	if (!Window)
 	{
 		std::cout << "Failed to create GLFW Window" << std::endl;
@@ -56,24 +55,63 @@ void Application::Run(int argc, char** argv)
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
+}
 
-	Init();
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(Window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+void Application::Run()
+{
+	Begin();
 
 	while (!glfwWindowShouldClose(Window))
 	{
 		Camera.ProcessInput(Window);
-		Draw(Window);
+		Draw();
 	}
 
+	End();
+}
+
+void Application::Begin()
+{
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
+		ImGui_ImplGlfw_InitForOpenGL(Window, true);
+		ImGui_ImplOpenGL3_Init("#version 330");
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+	}
+
+	{
+		Sphere.Init(32);
+
+		glm::mat4 Projection = glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.01f, 10000.0f);
+
+		ShaderGouraud.Init();
+		ShaderGouraud.SetMat4("Projection", Projection);
+
+		ShaderBlinnPhong.Init();
+		ShaderBlinnPhong.SetMat4("Projection", Projection);
+
+		ShaderPBR.Init();
+		ShaderPBR.SetMat4("Projection", Projection);
+
+		ShaderTextureGouraud.Init();
+		ShaderTextureGouraud.SetMat4("Projection", Projection);
+
+		ShaderTextureBlinnPhong.Init();
+		ShaderTextureBlinnPhong.SetMat4("Projection", Projection);
+
+		ShaderTexturePBR.Init();
+		ShaderTexturePBR.SetMat4("Projection", Projection);
+
+		ShaderOne = &ShaderTexturePBR;
+	}
+}
+
+void Application::End()
+{
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
@@ -81,39 +119,12 @@ void Application::Run(int argc, char** argv)
 	glfwTerminate();
 }
 
-void Application::Init()
-{
-	Sphere.Init();
-
-	glm::mat4 Projection = glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.01f, 10000.0f);
-
-	ShaderGouraud.Init();
-	ShaderGouraud.SetMat4("Projection", Projection);
-
-	ShaderBlinnPhong.Init();
-	ShaderBlinnPhong.SetMat4("Projection", Projection);
-
-	ShaderPBR.Init();
-	ShaderPBR.SetMat4("Projection", Projection);
-
-	ShaderTextureGouraud.Init();
-	ShaderTextureGouraud.SetMat4("Projection", Projection);
-
-	ShaderTextureBlinnPhong.Init();
-	ShaderTextureBlinnPhong.SetMat4("Projection", Projection);
-
-	ShaderTexturePBR.Init();
-	ShaderTexturePBR.SetMat4("Projection", Projection);
-
-	ShaderOne = &ShaderTexturePBR;
-}
-
-void Application::Draw(GLFWwindow* Window)
+void Application::Draw()
 {
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	DrawScene(Window);
+	DrawScene();
 	DrawGUI();
 
 	glfwSwapBuffers(Window);
@@ -130,7 +141,7 @@ void Application::DrawGUI()
 		ImGui::Begin("Settings");
 
 		ImGui::SliderFloat("Interval Between Lights", &IntervalBetweenLights, 0.0f, 100.f);
-		ImGui::SliderFloat3("Lights offset", (float*)&LightsOffset, -100.f, 100.f);
+		ImGui::SliderFloat3("Lights Offset", (float*)&LightsOffset, -100.f, 100.f);
 		ImGui::SliderInt("Lights Columns", &LightsColumns, 0, 31);
 		ImGui::SliderInt("Lights Rows", &LightsRows, 0, 32);
 
@@ -142,31 +153,36 @@ void Application::DrawGUI()
 
 		ImGui::NewLine();
 
-		ImGui::SliderInt("Sphere Segments", &SphereSegments, 4, 1024);
+		ImGui::SliderInt("Sphere Segments", &SphereSegments, 4, 1024*4);
 		if (ImGui::Button("Set Sphere Segments"))
 		{
-			Sphere = FSphere(SphereSegments);
-			Sphere.Init();
+			Sphere.Init(SphereSegments);
 		}
 
 		ImGui::End();
 	}
 
 	{
-		ImGui::Begin("Info :");
+		ImGui::Begin("Information and Statistics");
 
-		ImGui::Text("Shaders showed :");
 		ImGui::Text(
-			Scene
+			Scene == EScene::EStudy
+			? "Research Scene"
+			: "Demo Scene"
+		);
+		ImGui::Text("Shaders Showed :");
+		ImGui::Text(
+			Scene == EScene::EStudy
 			? ShaderOne->GetName().c_str()
 			: ("From left : 1." + ShaderGouraud.GetName() + " 2. " + ShaderBlinnPhong.GetName() + " 3. " + ShaderPBR.GetName() + " 4. " +
-				ShaderTextureGouraud.GetName() + " 5. " + ShaderTextureBlinnPhong.GetName() + " 6. " + ShaderTexturePBR.GetName()).c_str());
+				ShaderTextureGouraud.GetName() + " 5. " + ShaderTextureBlinnPhong.GetName() + " 6. " + ShaderTexturePBR.GetName()).c_str()
+		);
 
 		ImGui::NewLine();
 
-		ImGui::Text("FPS : %.2f)", ImGui::GetIO().Framerate);
-		ImGui::Text("Lights number : %d", LightsColumns * LightsRows);
-		ImGui::Text("Vertices : %d", Sphere.GetSize() * (Scene ? 1 : 6));
+		ImGui::Text("FPS : %.2f", ImGui::GetIO().Framerate);
+		ImGui::Text("Lights Number : %d", LightsColumns * LightsRows);
+		ImGui::Text("Vertices : %d", Sphere.GetSize() * (Scene == EScene::EStudy ? 1 : 6));
 
 		ImGui::End();
 	}
@@ -175,23 +191,23 @@ void Application::DrawGUI()
 		ImGui::Begin("Input");
 
 		ImGui::Text("Keyboard :");
-		ImGui::Text("	Change scene = \"`\"");
-		ImGui::Text("	Change shader to Gouraud = \"1\"");
-		ImGui::Text("	Change shader to BlinnPhong = \"2\"");
-		ImGui::Text("	Change shader to PBR = \"3\"");
-		ImGui::Text("	Change shader to Gouraud with texture = \"4\"");
-		ImGui::Text("	Change shader to BlinnPhong with texture = \"5\"");
-		ImGui::Text("	Change shader to PBR with texture = \"6\"");
-		ImGui::Text("	Move forward = \"w\"");
-		ImGui::Text("	Move back = \"s\"");
-		ImGui::Text("	Move left = \"a\"");
-		ImGui::Text("	Move right = \"d\"");
+		ImGui::Text("	Change Scene = \"`\"");
+		ImGui::Text("	Change Shader to Gouraud = \"1\"");
+		ImGui::Text("	Change Shader to BlinnPhong = \"2\"");
+		ImGui::Text("	Change Shader to PBR = \"3\"");
+		ImGui::Text("	Change Shader to Gouraud with texture = \"4\"");
+		ImGui::Text("	Change Shader to BlinnPhong with texture = \"5\"");
+		ImGui::Text("	Change Shader to PBR with texture = \"6\"");
+		ImGui::Text("	Move Forward = \"w\"");
+		ImGui::Text("	Move Back = \"s\"");
+		ImGui::Text("	Move Left = \"a\"");
+		ImGui::Text("	Move Right = \"d\"");
 
 		ImGui::NewLine();
 
 		ImGui::Text("Mouse :");
-		ImGui::Text("	Holding right click allows camera movement.");
-		ImGui::Text("	Scroll to change movement speed.");
+		ImGui::Text("	Holding Right Click Allows Camera Movement.");
+		ImGui::Text("	Scroll to Change Movement Speed.");
 
 		ImGui::End();
 	}
@@ -200,11 +216,11 @@ void Application::DrawGUI()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void Application::DrawScene(GLFWwindow* Window)
+void Application::DrawScene()
 {
 	switch (Scene)
 	{
-	case 0:
+	case EScene::EDemo:
 	{
 		DrawSphere(ShaderGouraud, 6.25f);
 		SetLights(ShaderGouraud);
@@ -226,7 +242,7 @@ void Application::DrawScene(GLFWwindow* Window)
 
 		break;
 	}
-	case 1:
+	case EScene::EStudy:
 	{
 		if (ShaderOne)
 		{
@@ -285,65 +301,65 @@ void Application::SetLights(FShader& Shader)
 	}
 }
 
-void Application::KeyCallback(GLFWwindow* Window, int Key, int ScanCode, int Action, int Mods)
+void Application::KeyCallback(GLFWwindow* inWindow, int Key, int ScanCode, int Action, int Mods)
 {
-	if (glfwGetKey(Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
-		glfwSetWindowShouldClose(Window, true);
+		glfwSetWindowShouldClose(inWindow, true);
 	}
-	if (glfwGetKey(Window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
 	{
-		Scene = Scene == 1 ? 0 : 1;
+		Scene = Scene == EScene::EDemo ? EScene::EStudy : EScene::EDemo;
 	}
-	if (glfwGetKey(Window, GLFW_KEY_1) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_1) == GLFW_PRESS)
 	{
 		ShaderOne = &ShaderGouraud;
 	}
-	if (glfwGetKey(Window, GLFW_KEY_2) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_2) == GLFW_PRESS)
 	{
 		ShaderOne = &ShaderBlinnPhong;
 	}
-	if (glfwGetKey(Window, GLFW_KEY_3) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_3) == GLFW_PRESS)
 	{
 		ShaderOne = &ShaderPBR;
 	}
-	if (glfwGetKey(Window, GLFW_KEY_4) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_4) == GLFW_PRESS)
 	{
 		ShaderOne = &ShaderTextureGouraud;
 	}	
-	if (glfwGetKey(Window, GLFW_KEY_5) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_5) == GLFW_PRESS)
 	{
 		ShaderOne = &ShaderTextureBlinnPhong;
 	}
-	if (glfwGetKey(Window, GLFW_KEY_6) == GLFW_PRESS)
+	if (glfwGetKey(inWindow, GLFW_KEY_6) == GLFW_PRESS)
 	{
 		ShaderOne = &ShaderTexturePBR;
 	}
 }
 
-void Application::FramebufferSizeCallback(GLFWwindow* Window, int Width, int Height)
+void Application::FramebufferSizeCallback(GLFWwindow* inWindow, int Width, int Height)
 {
 	glViewport(0, 0, Width, Height);
 }
 
-void Application::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void Application::ScrollCallback(GLFWwindow* inWindow, double xoffset, double yoffset)
 {
 	Camera.AddSpeed((float)yoffset/100.f);
 }
 
 // STATIC FUNCTION CALLBACKS 
 
-void Application::_FramebufferSizeCallback(GLFWwindow* Window, int Width, int Height)
+void Application::_FramebufferSizeCallback(GLFWwindow* inWindow, int Width, int Height)
 {
-	Instance->FramebufferSizeCallback(Window, Width, Height);
+	Instance->FramebufferSizeCallback(inWindow, Width, Height);
 }
 
-void Application::_KeyCallback(GLFWwindow* Window, int Key, int ScanCode, int Action, int Mods)
+void Application::_KeyCallback(GLFWwindow* inWindow, int Key, int ScanCode, int Action, int Mods)
 {
-	Instance->KeyCallback(Window, Key, ScanCode, Action, Mods);
+	Instance->KeyCallback(inWindow, Key, ScanCode, Action, Mods);
 }
 
-void Application::_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void Application::_ScrollCallback(GLFWwindow* inWindow, double xoffset, double yoffset)
 {
-	Instance->ScrollCallback(window, xoffset, yoffset);
+	Instance->ScrollCallback(inWindow, xoffset, yoffset);
 }

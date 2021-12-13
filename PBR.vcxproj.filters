@@ -54,7 +54,7 @@
     <ClCompile Include="Source\Shaders\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Primitives\Primitives.cpp">
+    <ClCompile Include="Source\Primitives\Sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Camera\Camera.cpp">
@@ -101,7 +101,7 @@
     <ClInclude Include="Source\Shaders\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Primitives\Primitives.h">
+    <ClInclude Include="Source\Primitives\Sphere.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Camera\Camera.h">

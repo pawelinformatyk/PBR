@@ -30,11 +30,12 @@ void main()
     vec3 WorldPos = vec3(Model * vec4(aPos,1.0));
 
     vec3 Diffuse = texture(AlbedoMap, aTexCoords).rgb;
+    // Make this shader look like PBR.
     float Specular = texture(MetallicMap, aTexCoords).r;
     float Roughness = texture(RoughnessMap, aTexCoords).r;
-    float Shininess = 20. / (Roughness * Roughness) - 2.;
+    float Shininess = 12.5 / (Roughness * Roughness) - 2.;
 
-    vec3 N = normalize(aNormal);
+    vec3 N = aNormal;
 
     vec3 DiffusePart = vec3(0.);
     vec3 SpecularPart = vec3(0.);

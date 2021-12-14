@@ -41,7 +41,7 @@ void main()
     // Make this shader look like PBR.
     float Specular = texture(MetallicMap, TexCoords).r;
     float Roughness = texture(RoughnessMap, TexCoords).r;
-    float Shininess = 20. / (Roughness * Roughness) - 2.;
+    float Shininess = 12.5 / (Roughness * Roughness) - 2.;
 
     vec3 N = GetNormalFromMap();
 

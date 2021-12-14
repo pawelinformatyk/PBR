@@ -15,15 +15,18 @@
 Application* Application::Instance = nullptr;
 
 Application::Application()
-	:Camera(glm::vec3(0.0f, -1.0f, -8.f), glm::vec2(ScreenWidth / 2, ScreenHeight / 2)),
-	ShaderGouraud("Gouraud","Source/Shaders/gouraud_vs.glsl", "Source/Shaders/gouraud_fs.glsl"),
-	ShaderBlinnPhong("BlinnPhong","Source/Shaders/_vs.glsl", "Source/Shaders/blinn_phong_fs.glsl"),
-	ShaderPBR("PBR", "Source/Shaders/_vs.glsl", "Source/Shaders/pbr_fs.glsl"),
-	ShaderTextureGouraud("Gouraud with texture", "Source/Shaders/gouraud_tex_vs.glsl", "Source/Shaders/gouraud_fs.glsl"),
-	ShaderTextureBlinnPhong("BlinnPhong with texture", "Source/Shaders/_vs.glsl", "Source/Shaders/blinn_phong_tex_fs.glsl"),
-	ShaderTexturePBR("PBR with texture", "Source/Shaders/_vs.glsl", "Source/Shaders/pbr_tex_fs.glsl")
+	:Camera(glm::vec3(0.0f, -1.0f, -8.f), glm::vec2(ScreenWidth / 2, ScreenHeight / 2))
 {
 	Instance = this;
+
+	Shaders.reserve(6);
+
+	Shaders.emplace_back("Gouraud", "Source/Shaders/gouraud_vs.glsl", "Source/Shaders/gouraud_fs.glsl");
+	Shaders.emplace_back("BlinnPhong", "Source/Shaders/_vs.glsl", "Source/Shaders/blinn_phong_fs.glsl");
+	Shaders.emplace_back("PBR", "Source/Shaders/_vs.glsl", "Source/Shaders/pbr_fs.glsl");
+	Shaders.emplace_back("Gouraud with texture", "Source/Shaders/gouraud_tex_vs.glsl", "Source/Shaders/gouraud_fs.glsl");
+	Shaders.emplace_back("BlinnPhong with texture", "Source/Shaders/_vs.glsl", "Source/Shaders/blinn_phong_tex_fs.glsl");
+	Shaders.emplace_back("PBR with texture", "Source/Shaders/_vs.glsl", "Source/Shaders/pbr_tex_fs.glsl");
 
 	Init();
 }
@@ -88,25 +91,13 @@ void Application::Begin()
 
 		glm::mat4 Projection = glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.01f, 10000.0f);
 
-		ShaderGouraud.Init();
-		ShaderGouraud.SetMat4("Projection", Projection);
+		for (auto& Shad : Shaders)
+		{
+			Shad.Init();
+			Shad.SetMat4("Projection", Projection);
+		}
 
-		ShaderBlinnPhong.Init();
-		ShaderBlinnPhong.SetMat4("Projection", Projection);
-
-		ShaderPBR.Init();
-		ShaderPBR.SetMat4("Projection", Projection);
-
-		ShaderTextureGouraud.Init();
-		ShaderTextureGouraud.SetMat4("Projection", Projection);
-
-		ShaderTextureBlinnPhong.Init();
-		ShaderTextureBlinnPhong.SetMat4("Projection", Projection);
-
-		ShaderTexturePBR.Init();
-		ShaderTexturePBR.SetMat4("Projection", Projection);
-
-		ShaderOne = &ShaderTexturePBR;
+		ShaderOne = &Shaders.back();
 	}
 }
 
@@ -129,6 +120,56 @@ void Application::Draw()
 
 	glfwSwapBuffers(Window);
 	glfwPollEvents();
+}
+
+void Application::DrawScene()
+{
+	switch (Scene)
+	{
+	case EScene::EDemo:
+	{
+		float Offset = 6.25f;
+		for (auto& Shad : Shaders)
+		{
+			DrawSphere(Shad, Offset);
+			SetLights(Shad);
+			Offset -= 2.5;
+		}
+		break;
+	}
+	case EScene::EStudy:
+	{
+		if (ShaderOne)
+		{
+			DrawSphere(*ShaderOne, 0.f);
+			SetLights(*ShaderOne);
+		}
+		break;
+	}
+	}
+}
+
+void Application::DrawSphere(FShader& Shader, float Offset)
+{
+	// Draw Name as text.
+	Shader.Use();
+
+	Shader.SetMat4("View", Camera.GetView());
+	Shader.SetVec3("CameraPos", Camera.GetPosition());
+
+	Shader.SetVec3("Albedo", Albedo);
+	Shader.SetFloat("Metallic", Metallic);
+	Shader.SetFloat("Roughness", Roughness);
+
+	Shader.SetInt("AlbedoMap", 0);
+	Shader.SetInt("NormalMap", 1);
+	Shader.SetInt("MetallicMap", 2);
+	Shader.SetInt("RoughnessMap", 3);
+
+	glm::mat4 Model = glm::translate(glm::mat4(1.0f), glm::vec3(Offset, 0.f, 0.f));
+
+	Shader.SetMat4("Model", Model);
+	Sphere.Draw();
 }
 
 void Application::DrawGUI()
@@ -174,8 +215,8 @@ void Application::DrawGUI()
 		ImGui::Text(
 			Scene == EScene::EStudy
 			? ShaderOne->GetName().c_str()
-			: ("From left : 1." + ShaderGouraud.GetName() + " 2. " + ShaderBlinnPhong.GetName() + " 3. " + ShaderPBR.GetName() + " 4. " +
-				ShaderTextureGouraud.GetName() + " 5. " + ShaderTextureBlinnPhong.GetName() + " 6. " + ShaderTexturePBR.GetName()).c_str()
+			: ("From left : 1." + Shaders[0].GetName() + " 2. " + Shaders[1].GetName() + " 3. " + Shaders[2].GetName() + " 4. " +
+				Shaders[3].GetName() + " 5. " + Shaders[4].GetName() + " 6. " + Shaders[5].GetName()).c_str()
 		);
 
 		ImGui::NewLine();
@@ -216,67 +257,6 @@ void Application::DrawGUI()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void Application::DrawScene()
-{
-	switch (Scene)
-	{
-	case EScene::EDemo:
-	{
-		DrawSphere(ShaderGouraud, 6.25f);
-		SetLights(ShaderGouraud);
-
-		DrawSphere(ShaderBlinnPhong, 3.75f);
-		SetLights(ShaderBlinnPhong);
-
-		DrawSphere(ShaderPBR, 1.25f);
-		SetLights(ShaderPBR);
-
-		DrawSphere(ShaderTextureGouraud, -1.25f);
-		SetLights(ShaderTextureGouraud);
-
-		DrawSphere(ShaderTextureBlinnPhong, -3.75f);
-		SetLights(ShaderTextureBlinnPhong);
-
-		DrawSphere(ShaderTexturePBR, -6.25f);
-		SetLights(ShaderTexturePBR);
-
-		break;
-	}
-	case EScene::EStudy:
-	{
-		if (ShaderOne)
-		{
-			DrawSphere(*ShaderOne, 0.f);
-			SetLights(*ShaderOne);
-		}
-		break;
-	}
-	}
-}
-
-void Application::DrawSphere(FShader& Shader, float Offset)
-{
-	// Draw Name as text.
-	Shader.Use();
-
-	Shader.SetMat4("View", Camera.GetView());
-	Shader.SetVec3("CameraPos", Camera.GetPosition());
-
-	Shader.SetVec3("Albedo", Albedo);
-	Shader.SetFloat("Metallic", Metallic);
-	Shader.SetFloat("Roughness", Roughness);
-
-	Shader.SetInt("AlbedoMap", 0);
-	Shader.SetInt("NormalMap", 1);
-	Shader.SetInt("MetallicMap", 2);
-	Shader.SetInt("RoughnessMap", 3);
-
-	glm::mat4 Model = glm::translate(glm::mat4(1.0f), glm::vec3(Offset, 0.f, 0.f));
-
-	Shader.SetMat4("Model", Model);
-	Sphere.Draw();
-}
-
 void Application::SetLights(FShader& Shader)
 {
 	Shader.SetInt("LightsNum", LightsRows * LightsColumns);
@@ -313,27 +293,27 @@ void Application::KeyCallback(GLFWwindow* inWindow, int Key, int ScanCode, int A
 	}
 	if (glfwGetKey(inWindow, GLFW_KEY_1) == GLFW_PRESS)
 	{
-		ShaderOne = &ShaderGouraud;
+		ShaderOne = &Shaders[0];
 	}
 	if (glfwGetKey(inWindow, GLFW_KEY_2) == GLFW_PRESS)
 	{
-		ShaderOne = &ShaderBlinnPhong;
+		ShaderOne = &Shaders[1];
 	}
 	if (glfwGetKey(inWindow, GLFW_KEY_3) == GLFW_PRESS)
 	{
-		ShaderOne = &ShaderPBR;
+		ShaderOne = &Shaders[2];
 	}
 	if (glfwGetKey(inWindow, GLFW_KEY_4) == GLFW_PRESS)
 	{
-		ShaderOne = &ShaderTextureGouraud;
+		ShaderOne = &Shaders[3];
 	}	
 	if (glfwGetKey(inWindow, GLFW_KEY_5) == GLFW_PRESS)
 	{
-		ShaderOne = &ShaderTextureBlinnPhong;
+		ShaderOne = &Shaders[4];
 	}
 	if (glfwGetKey(inWindow, GLFW_KEY_6) == GLFW_PRESS)
 	{
-		ShaderOne = &ShaderTexturePBR;
+		ShaderOne = &Shaders[5];
 	}
 }
 

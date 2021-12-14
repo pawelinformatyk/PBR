@@ -5,6 +5,7 @@ struct GLFWwindow;
 #include "Primitives/Sphere.h"
 #include "Shaders/Shader.h"
 #include "Camera/Camera.h"
+#include "vector"
 
 enum class EScene
 {
@@ -39,13 +40,8 @@ private:
 
 private:
 
-	FShader ShaderGouraud;
-	FShader ShaderBlinnPhong;
-	FShader ShaderPBR;
-	FShader ShaderTextureGouraud;
-	FShader ShaderTextureBlinnPhong;
-	FShader ShaderTexturePBR;
-	FShader* ShaderOne;
+	std::vector<FShader> Shaders;
+	FShader* ShaderOne = nullptr;
 
 	FCamera Camera;
 

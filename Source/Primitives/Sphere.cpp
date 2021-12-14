@@ -29,6 +29,8 @@ void FSphere::GetData(std::vector<float>& Data,std::vector<unsigned int>& Indice
 		}
 	}
 
+	VerticesNum = Positions.size();
+
 	bool bOddRow = false;
 	for (unsigned int y = 0; y < inSegments; ++y)
 	{
@@ -50,25 +52,19 @@ void FSphere::GetData(std::vector<float>& Data,std::vector<unsigned int>& Indice
 		}
 		bOddRow = !bOddRow;
 	}
-	
-	VerticesNum =  Positions.size();
 
 	for (unsigned int i = 0; i < Positions.size(); ++i)
 	{
 		Data.push_back(Positions[i].x);
 		Data.push_back(Positions[i].y);
 		Data.push_back(Positions[i].z);
-		if (Normals.size() > 0)
-		{
-			Data.push_back(Normals[i].x);
-			Data.push_back(Normals[i].y);
-			Data.push_back(Normals[i].z);
-		}
-		if (UV.size() > 0)
-		{
-			Data.push_back(UV[i].x);
-			Data.push_back(UV[i].y);
-		}
+
+		Data.push_back(Normals[i].x);
+		Data.push_back(Normals[i].y);
+		Data.push_back(Normals[i].z);
+
+		Data.push_back(UV[i].x);
+		Data.push_back(UV[i].y);
 	}
 }
 

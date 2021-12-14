@@ -11,11 +11,9 @@ class FShader
 {
 public:
 
-	FShader(const std::string& inName, const char* vertex_path, const char* fragment_path );
+	FShader(const char* inName, const char* vertex_path, const char* fragment_path );
 	
     virtual void Init();
-    const char* vertex_path;
-    const char* fragment_path;
 
     const std::string& GetName() { return Name; };
 
@@ -76,6 +74,8 @@ public:
 private:
 
 	std::string Name;
+    const char* VertexPath;
+    const char* FragmentPath;
 
     unsigned int ID;
 	/*

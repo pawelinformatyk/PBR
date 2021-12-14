@@ -29,17 +29,17 @@
 #include "Shader.h"
 
 
-FShader::FShader(const std::string& inName, const char* vertex_path, const char* fragment_path)
+FShader::FShader(const char* inName, const char* inVertexPath, const char* inFragPath)
 	:Name(inName),
-	vertex_path(vertex_path),
-	fragment_path(fragment_path)
+	VertexPath(inVertexPath),
+	FragmentPath(inFragPath)
 {
 
 }
 
 void FShader::Init()
 {
-	ID = LoadShaders(vertex_path, fragment_path, NULL);
+	ID = LoadShaders(VertexPath, FragmentPath, NULL);
 
 	Use();
 }

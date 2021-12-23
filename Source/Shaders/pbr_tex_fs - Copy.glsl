@@ -39,8 +39,7 @@ const float PI = 3.14159265359;
 
 float DistributionGGX(vec3 N, vec3 H, float Roughness)
 {
-    float a = Roughness*Roughness;
-    float A2 = a*a;
+    float A2 = Roughness*Roughness * Roughness*Roughness;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH*NdotH;
 
@@ -51,14 +50,13 @@ float DistributionGGX(vec3 N, vec3 H, float Roughness)
     return Nom / Denom;
 }
 
-
-float GGX(float NdotV, float Roughness)
+float GeometrySchlickGGX(float NdotV, float Roughness)
 {
-    float a = Roughness*Roughness;
-    float a2 = a*a;
+    float r = (Roughness + 1.0);
+    float k = (r*r) / 8.0;
 
-    float Nom   = 2 * NdotV;
-    float Denom = NdotV + sqrt(a2 + (1-a2) * NdotV * NdotV);
+    float Nom   = NdotV;
+    float Denom = NdotV * (1.0 - k) + k;
 
     return Nom / Denom;
 }
@@ -67,26 +65,15 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float Roughness)
 {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
-    float Ggx2 = GGX(NdotV, Roughness);
-    float Ggx1 = GGX(NdotL, Roughness);
+    float Ggx2 = GeometrySchlickGGX(NdotV, Roughness);
+    float Ggx1 = GeometrySchlickGGX(NdotL, Roughness);
 
     return Ggx1 * Ggx2;
 }
 
-vec3 FresnelCookTorrence(float CosTheta, vec3 F0)
+vec3 FresnelSchlick(float CosTheta, vec3 F0)
 {
-    F0 = sqrt(F0);
-    vec3 n = (1. + F0) / (1. - F0);
-    float c = CosTheta;
-    vec3 g = sqrt(n*n + c*c - 1.);
-    
-    vec3 expr1 = (g-c) / (g + c);
-    expr1 *= expr1;
-
-    vec3 expr2 = ((g + c) * c - 1.)/((g - c) * c + 1.);
-    expr2 *= expr2;
-
-    return 0.5 * expr1 * (1. + expr2);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - CosTheta, 0.0, 1.0), 5.0);
 }
 
 void main()
@@ -117,7 +104,7 @@ void main()
         // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, Roughness);   
         float G   = GeometrySmith(N, V, L, Roughness);      
-        vec3 F    = FresnelCookTorrence(clamp(dot(H, V), 0.0, 1.0), F0);
+        vec3 F    = FresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
            
         vec3 Numerator    = NDF * G * F; 
         float Denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero

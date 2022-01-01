@@ -98,16 +98,13 @@ void main()
     vec3 N = GetNormalFromMap();
     vec3 V = normalize(CameraPos - WorldPos);
 
-    // Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the Albedo Color as F0 (Metallic workflow)    
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, Albedo, Metallic);
 
-    // reflectance equation
+    // Reflectance equation
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < min(MAX_LIGHTS,LightsNum); ++i) 
     {
-        // Calculate per-light Radiance
         vec3 L = normalize(LightPositions[i] - WorldPos);
         vec3 H = normalize(V + L);
         float Distance = length(LightPositions[i] - WorldPos);
@@ -125,13 +122,8 @@ void main()
         
         // kS is equal to Fresnel
         vec3 kS = F;
-        // For energy conservation, the Diffuse and Specular light can't
-        // be above 1.0 (unless the surface emits light); to preserve this
-        // relationship the Diffuse component (kD) should equal 1.0 - kS.
+        // Energy conservation, 
         vec3 kD = vec3(1.0) - kS;
-        // Multiply kD by the inverse metalness such that only non-metals 
-        // have Diffuse lighting, or a linear blend if partly metal (pure metals
-        // have no Diffuse light).
         kD *= 1.0 - Metallic;	  
 
         // Scale light by NdotL

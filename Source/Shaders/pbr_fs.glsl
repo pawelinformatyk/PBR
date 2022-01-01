@@ -21,17 +21,16 @@ const float PI = 3.14159265359;
 float DistributionGGX(vec3 N, vec3 H, float Roughness)
 {
     float a = Roughness*Roughness;
-    float A2 = a*a;
+    float a2 = a*a;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH*NdotH;
 
-    float Nom   = A2;
-    float Denom = (NdotH2 * (A2 - 1.0) + 1.0);
+    float Nom   = a2;
+    float Denom = (NdotH2 * (a2 - 1.0) + 1.0);
     Denom = PI * Denom * Denom;
 
     return Nom / Denom;
 }
-
 
 float GGX(float NdotV, float Roughness)
 {
@@ -75,16 +74,13 @@ void main()
     vec3 N = normalize(Normal);
     vec3 V = normalize(CameraPos - WorldPos);
 
-    // Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the Albedo Color as F0 (Metallic workflow)    
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, Albedo, Metallic);
 
-    // reflectance equation
+    // Reflectance equation
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < min(MAX_LIGHTS,LightsNum); ++i) 
     {
-        // calculate per-light Radiance
         float Distance = length(LightPositions[i] - WorldPos);
         float Attenuation = 1.0 / (Distance * Distance);
         vec3 Radiance = vec3(300.0) * Attenuation;
@@ -101,21 +97,13 @@ void main()
         float Denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
         vec3 Specular = Numerator / (Denominator + 0.0001);
         
-        // kS is equal to Fresnel
         vec3 kS = F;
-        // for energy conservation, the Diffuse and Specular light can't
-        // be above 1.0 (unless the surface emits light); to preserve this
-        // relationship the Diffuse component (kD) should equal 1.0 - kS.
+        // Energy conservation, 
         vec3 kD = vec3(1.0) - kS;
-        // multiply kD by the inverse metalness such that only non-metals 
-        // have Diffuse lighting, or a linear blend if partly metal (pure metals
-        // have no Diffuse light).
         kD *= 1.0 - Metallic;	  
 
-        // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
 
-        // add to outgoing Radiance Lo
         Lo += (kD * Albedo / PI + Specular) * Radiance * NdotL;
     }   
     
@@ -125,7 +113,7 @@ void main()
 
     // HDR tonemapping
     Color = Color / (Color + vec3(1.0));
-    // gamma correct
+    // Gamma correct
     Color = pow(Color, vec3(1.0/2.2)); 
 
     FragColor = vec4(Color, 1.0);

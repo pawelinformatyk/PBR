@@ -38,7 +38,7 @@ vec3 GetNormalFromMap()
 void main()
 {		
     vec3 Diffuse = texture(AlbedoMap, TexCoords).rgb;
-    // Make this shader look like PBR.
+     // Przejœcie z parametrów PBR. 
     float Roughness = texture(RoughnessMap, TexCoords).r;
     float Specular = 1 - Roughness;
     float Shininess = 12.5 / (Roughness * Roughness) - 2.;

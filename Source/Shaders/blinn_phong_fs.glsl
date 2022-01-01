@@ -20,7 +20,7 @@ uniform vec3 CameraPos;
 void main()
 {		
     vec3 Diffuse = pow(Albedo, vec3(2.5));
-    // Make this shader look like PBR. With texture it's diffrent.
+    // Transfer of PBR parameters. 
     float Specular = 1 - Roughness;
     float Shininess = 20. / (Roughness * Roughness) - 2.;
 
@@ -51,5 +51,6 @@ void main()
 
     vec3 Color = Ambient + DiffusePart + SpecularPart;
 
+    // Output color of pixel. 
     FragColor = vec4(Color, 1.0);
 }

@@ -26,9 +26,11 @@ void main()
 {
     gl_Position =  Projection * View * Model * vec4(aPos, 1.0);
 
+    // Vertex position. 
     vec3 WorldPos = vec3(Model * vec4(aPos,1.0));
 
     vec3 Diffuse = pow(Albedo, vec3(2.5));
+    // Transfer of PBR parameters. 
     float Specular = 1 - Roughness;
     float Shininess = 20. / (Roughness * Roughness) - 2.;
 
@@ -59,5 +61,6 @@ void main()
 
     vec3 Color = Ambient + DiffusePart + SpecularPart;
 
+    // Output color passed to Fragment Shader. 
     FragColor = vec4(Color, 1.0);
 }

@@ -107,30 +107,36 @@ void main()
     {
         vec3 L = normalize(LightPositions[i] - WorldPos);
         vec3 H = normalize(V + L);
+
+        // Specular part of BRDF
+        float D = DistributionGGX(N, H, Roughness);   
+        float G   = GeometrySmith(N, V, L, Roughness);      
+        vec3 F    = FresnelCookTorrence(clamp(dot(H, V), 0.0, 1.0), F0);
+           
+        vec3 Numerator    = D * G * F; 
+        float Denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+        vec3 Specular = Numerator / (Denominator + 0.0001);
+        
+        vec3 kS = F;
+        // Energy conservation. 
+        vec3 kD = vec3(1.0) - kS;
+
+        // Ensure that metallic surfaces don't have diffuse light.
+        kD *= 1.0 - Metallic;	  
+        
+        // Lambertian Diffuse part of BRDF
+        vec3 Diffuse = kD * Albedo / PI;
+
+        // Cook-Torrance BRDF
+        vec3 BRDF = Diffuse  + Specular; 
+
         float Distance = length(LightPositions[i] - WorldPos);
         float Attenuation = 1.0 / (Distance * Distance);
         vec3 Radiance = vec3(300.0) * Attenuation;
 
-        // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, Roughness);   
-        float G   = GeometrySmith(N, V, L, Roughness);      
-        vec3 F    = FresnelCookTorrence(clamp(dot(H, V), 0.0, 1.0), F0);
-           
-        vec3 Numerator    = NDF * G * F; 
-        float Denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
-        vec3 Specular = Numerator / Denominator;
-        
-        // kS is equal to Fresnel
-        vec3 kS = F;
-        // Energy conservation, 
-        vec3 kD = vec3(1.0) - kS;
-        kD *= 1.0 - Metallic;	  
-
-        // Scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
 
-        // Add to outgoing Radiance Lo
-        Lo += (kD * Albedo / PI + Specular) * Radiance * NdotL;
+        Lo += BRDF  * Radiance * NdotL;
     }   
     
     vec3 Ambient = vec3(0.03) * Albedo;

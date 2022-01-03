@@ -59,7 +59,7 @@ private:
 	float Roughness = 0.05f;
 	glm::vec3 Albedo = glm::vec3(0.5f, 0.f, 0.f);
 
-	int SphereSegments = 4;
+	int SphereSegments = 32;
 
 	EScene Scene = EScene::EDemo;
 

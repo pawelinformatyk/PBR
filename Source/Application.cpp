@@ -131,8 +131,8 @@ void Application::DrawScene()
 		float Offset = 6.25f;
 		for (auto& Shad : Shaders)
 		{
-			DrawSphere(Shad, Offset);
 			SetLights(Shad);
+			DrawSphere(Shad, Offset);
 			Offset -= 2.5;
 		}
 		break;
@@ -141,8 +141,8 @@ void Application::DrawScene()
 	{
 		if (ShaderOne)
 		{
-			DrawSphere(*ShaderOne, 0.f);
 			SetLights(*ShaderOne);
+			DrawSphere(*ShaderOne, 0.f);
 		}
 		break;
 	}
@@ -259,6 +259,8 @@ void Application::DrawGUI()
 
 void Application::SetLights(FShader& Shader)
 {
+	Shader.Use();
+
 	Shader.SetInt("LightsNum", LightsRows * LightsColumns);
 
 	std::vector<glm::vec3> LightPositions;

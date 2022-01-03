@@ -108,9 +108,6 @@ void FSphere::Init(unsigned int inSegments)
 
 void FSphere::Draw()
 {
-	glBindVertexArray(SphereVAO);
-	glDrawElements(GL_TRIANGLE_STRIP, IndexCount, GL_UNSIGNED_INT, 0);
-
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, Textures[0].GetID());
 	glActiveTexture(GL_TEXTURE1);
@@ -119,6 +116,10 @@ void FSphere::Draw()
 	glBindTexture(GL_TEXTURE_2D, Textures[2].GetID());
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, Textures[3].GetID());
+
+	glBindVertexArray(SphereVAO);
+
+	glDrawElements(GL_TRIANGLE_STRIP, IndexCount, GL_UNSIGNED_INT, 0);
 }
 
 size_t FSphere::GetSize()

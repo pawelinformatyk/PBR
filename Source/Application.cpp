@@ -87,7 +87,7 @@ void Application::Begin()
 	}
 
 	{
-		Sphere.Init(32);
+		Sphere.Init(SphereSegments);
 
 		glm::mat4 Projection = glm::perspective(glm::radians(60.0f), (float)ScreenWidth / ScreenHeight, 0.01f, 10000.0f);
 
@@ -129,11 +129,16 @@ void Application::DrawScene()
 	case EScene::EDemo:
 	{
 		float Offset = 6.25f;
+		int i = 0;
 		for (auto& Shad : Shaders)
 		{
 			SetLights(Shad);
 			DrawSphere(Shad, Offset);
-			Offset -= 2.5;
+			if (i++ == 2)
+			{
+				Offset -= 2.5f;
+			}
+			Offset -= 2.5f;
 		}
 		break;
 	}
@@ -194,7 +199,7 @@ void Application::DrawGUI()
 
 		ImGui::NewLine();
 
-		ImGui::SliderInt("Sphere Segments", &SphereSegments, 4, 1024*4);
+		ImGui::InputInt("Sphere Segments", &SphereSegments, 32, 32);
 		if (ImGui::Button("Set Sphere Segments"))
 		{
 			Sphere.Init(SphereSegments);

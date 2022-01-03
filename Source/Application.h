@@ -51,15 +51,15 @@ private:
 	FSphere Sphere;
 
 	float IntervalBetweenLights = 20.f;
-	glm::vec3 LightsOffset = glm::vec3(0.f, 0.f, -10.f);
-	int LightsColumns = 2;
-	int LightsRows = 2;
+	glm::vec3 LightsOffset = glm::vec3(5.f, 10.f, -10.f);
+	int LightsColumns = 1;
+	int LightsRows = 1;
 
 	float Metallic = 0.f;
 	float Roughness = 0.05f;
 	glm::vec3 Albedo = glm::vec3(0.5f, 0.f, 0.f);
 
-	int SphereSegments = 32;
+	int SphereSegments = 1024;
 
 	EScene Scene = EScene::EDemo;
 

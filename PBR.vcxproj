@@ -194,9 +194,7 @@
     <None Include="Source\Shaders\gouraud_fs.glsl" />
     <None Include="Source\Shaders\gouraud_tex_vs.glsl" />
     <None Include="Source\Shaders\gouraud_vs.glsl" />
-    <None Include="Source\Shaders\pbr_fs - Copy.glsl" />
     <None Include="Source\Shaders\pbr_fs.glsl" />
-    <None Include="Source\Shaders\pbr_tex_fs - Copy.glsl" />
     <None Include="Source\Shaders\pbr_tex_fs.glsl" />
     <None Include="Source\Shaders\_vs.glsl" />
   </ItemGroup>

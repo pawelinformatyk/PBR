@@ -52,13 +52,13 @@ void main()
         float Spec = pow(max(dot(ViewDir,ReflectDir), 0.0), Shininess);
 
         float Distance = length(LightPositions[i] - WorldPos);  
-        float Attenuation = 85. / ( Distance * Distance);    
+        float Attenuation = 300. / ( Distance * Distance);    
     
-        DiffusePart  += vec3(1.) * Diff * Diffuse * Attenuation;
+        DiffusePart  += vec3(0.3) * Diff * Diffuse * Attenuation;
         SpecularPart += vec3(0.8) * Spec * Specular * Attenuation; 
     }
     
-    vec3 Ambient = vec3(0.03) * Diffuse;
+    vec3 Ambient = vec3(0.2) * Diffuse;
 
     vec3 Color = Ambient + DiffusePart + SpecularPart;
 
